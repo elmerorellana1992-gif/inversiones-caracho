@@ -1,12 +1,950 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>inversiones-caracho</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inversiones Caracho | Catálogo y Carrito de Compras</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom CSS animations and dynamic styling */
+    html {
+      scroll-behavior: smooth;
+    }
     
+    /* Smooth transition for slide-over drawer */
+    .cart-drawer {
+      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    }
+
+    /* Accordion transitions */
+    details summary::-webkit-details-marker {
+      display: none;
+    }
+    details summary {
+      list-style: none;
+    }
+    
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #059669;
+      border-radius: 9999px;
+    }
+
+    /* Notification Toast Animation */
+    @keyframes toastIn {
+      from { transform: translateY(100%) scale(0.9); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .toast-animate {
+      animation: toastIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased flex flex-col min-h-screen">
+
+  <!-- ==================== HEADER & NAVBAR ==================== -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+      
+      <!-- Logo & Brand Name -->
+      <a href="#" class="flex items-center gap-3 group">
+        <div class="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center text-2xl shadow-md shadow-brand-600/30 group-hover:scale-105 transition-transform">
+          🛒
+        </div>
+        <div>
+          <span class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 block leading-tight">
+            Inversiones <span class="text-brand-600">Caracho</span>
+          </span>
+          <span class="text-xs text-slate-500 font-medium hidden sm:block">Abarrotería & Productos de Calidad</span>
+        </div>
+      </a>
+
+      <!-- Quick Search input inside Navbar (Tablet & Desktop) -->
+      <div class="hidden md:flex flex-1 max-w-md relative mx-4">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input 
+          type="text" 
+          id="nav-search-input"
+          oninput="handleSearch(this.value)"
+          placeholder="Buscar entre +900 productos (ej. Aceite, Leche, Jabón)..." 
+          class="w-full pl-10 pr-4 py-2 bg-slate-100 hover:bg-slate-200/70 focus:bg-white text-sm rounded-full border border-transparent focus:border-brand-500 outline-none transition-all"
+        >
+      </div>
+
+      <!-- Header Action Buttons -->
+      <div class="flex items-center gap-3">
+        <!-- Direct Phone Link -->
+        <a href="tel:+50431866732" class="hidden lg:flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-brand-600 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+          <i class="fa-solid fa-phone text-brand-600"></i>
+          <span>+504 3186-6732</span>
+        </a>
+
+        <!-- Cart Trigger Button -->
+        <button 
+          onclick="toggleCart(true)"
+          aria-label="Abrir Carrito"
+          class="relative bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2.5 rounded-xl shadow-lg shadow-brand-600/25 flex items-center gap-2.5 transition-all active:scale-95"
+        >
+          <i class="fa-solid fa-cart-shopping text-lg"></i>
+          <span class="hidden sm:inline text-sm font-bold">Ver Carrito</span>
+          <span id="cart-badge-count" class="bg-amber-400 text-slate-900 text-xs font-black px-2 py-0.5 rounded-full min-w-[20px] text-center shadow-sm">
+            0
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Search Bar Subheader -->
+    <div class="md:hidden px-4 pb-3 pt-1 border-t border-slate-100">
+      <div class="relative w-full">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input 
+          type="text" 
+          id="mobile-search-input"
+          oninput="handleSearch(this.value)"
+          placeholder="Buscar producto por nombre..." 
+          class="w-full pl-10 pr-4 py-2 bg-slate-100 text-sm rounded-full border border-slate-200 focus:border-brand-500 outline-none"
+        >
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== HERO SECTION ==================== -->
+  <section class="bg-gradient-to-br from-slate-900 via-slate-800 to-brand-900 text-white py-10 lg:py-14 relative overflow-hidden">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(16,185,129,0.15),transparent_50%)]"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="grid lg:grid-cols-12 gap-8 items-center">
+        
+        <div class="lg:col-span-8 text-center lg:text-left space-y-4">
+          <span class="inline-flex items-center gap-2 bg-brand-500/20 text-brand-300 border border-brand-500/30 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold backdrop-blur-sm">
+            <span class="w-2 h-2 rounded-full bg-brand-400 animate-pulse"></span>
+            Listado Inteligente & Pedidos Directos
+          </span>
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
+            Arma tu lista de compra y envíala en un solo clic por <span class="text-emerald-400">WhatsApp</span>
+          </h1>
+          <p class="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto lg:mx-0 font-normal">
+            Selecciona todos los productos que necesitas de nuestro catálogo interactivo. Agrega las cantidades deseadas a tu carrito y revisa tu total en Lempiras antes de comunicarte con nosotros.
+          </p>
+          
+          <div class="pt-2 flex flex-wrap gap-4 justify-center lg:justify-start">
+            <a href="#catalogo" class="bg-brand-600 hover:bg-brand-500 text-white font-bold px-6 py-3 rounded-xl shadow-lg shadow-brand-600/30 transition-all flex items-center gap-2">
+              <i class="fa-solid fa-list-check"></i>
+              <span>Explorar Catálogo</span>
+            </a>
+            <button onclick="toggleCart(true)" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-semibold px-6 py-3 rounded-xl backdrop-blur-sm transition-all flex items-center gap-2">
+              <i class="fa-solid fa-basket-shopping text-emerald-400"></i>
+              <span>Ver mi lista (<span id="hero-items-count">0</span>)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Hero Stats Cards -->
+        <div class="lg:col-span-4 grid grid-cols-2 gap-4">
+          <div class="bg-white/10 backdrop-blur-md p-5 rounded-2xl border border-white/10 text-center">
+            <div class="text-3xl lg:text-4xl font-extrabold text-amber-400">948+</div>
+            <div class="text-xs sm:text-sm text-slate-300 font-medium mt-1">Productos Registrados</div>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md p-5 rounded-2xl border border-white/10 text-center">
+            <div class="text-3xl lg:text-4xl font-extrabold text-brand-400">52</div>
+            <div class="text-xs sm:text-sm text-slate-300 font-medium mt-1">Categorías de Abarrotes</div>
+          </div>
+          <div class="col-span-2 bg-gradient-to-r from-brand-600/40 to-emerald-600/30 backdrop-blur-md p-4 rounded-2xl border border-brand-500/30 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-xl">
+                <i class="fa-brands fa-whatsapp"></i>
+              </div>
+              <div class="text-left">
+                <div class="text-xs text-slate-300">Atención Directa</div>
+                <div class="text-sm font-bold text-white">+504 3186-6732</div>
+              </div>
+            </div>
+            <span class="text-xs bg-emerald-500/30 text-emerald-200 px-2.5 py-1 rounded-md font-medium">Activo</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== MAIN CONTENT & CATALOG ==================== -->
+  <main id="catalogo" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    
+    <!-- Controls Header: Search & Category Counters -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Catálogo de Productos</h2>
+          <p class="text-slate-500 text-sm mt-0.5">Haz clic en una categoría para abrirla o usa el buscador para filtrar</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button 
+            onclick="expandAllCategories(true)"
+            class="text-xs font-semibold text-slate-600 hover:text-brand-600 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg transition-colors"
+          >
+            <i class="fa-solid fa-angles-down mr-1"></i> Expandir Todas
+          </button>
+          <button 
+            onclick="expandAllCategories(false)"
+            class="text-xs font-semibold text-slate-600 hover:text-brand-600 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg transition-colors"
+          >
+            <i class="fa-solid fa-angles-up mr-1"></i> Contraer Todas
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Search Bar -->
+      <div class="mt-5 relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+        <input 
+          type="text" 
+          id="main-search-input"
+          oninput="handleSearch(this.value)"
+          placeholder="¿Qué estás buscando hoy? (ej. Arroz, Aceite Clover, Coca Cola, Leche)..." 
+          class="w-full pl-12 pr-10 py-3.5 bg-slate-50 focus:bg-white text-slate-900 rounded-xl border border-slate-200 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 text-base outline-none transition-all"
+        >
+        <button 
+          id="clear-search-btn"
+          onclick="clearSearch()"
+          class="hidden absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 text-sm"
+        >
+          <i class="fa-solid fa-circle-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Active Filter Message (Hidden by default) -->
+      <div id="search-results-info" class="hidden mt-3 text-xs font-semibold text-brand-700 bg-brand-50 p-2.5 rounded-lg border border-brand-200/60 flex justify-between items-center">
+        <span><i class="fa-solid fa-filter mr-1.5"></i> <span id="search-results-count">0</span> productos encontrados con tu búsqueda.</span>
+        <button onclick="clearSearch()" class="underline hover:text-brand-900">Limpiar búsqueda</button>
+      </div>
+    </div>
+
+    <!-- ACCORDION CONTAINER FOR CATEGORIES -->
+    <div id="categories-container" class="space-y-4">
+      <!-- Categories will be rendered dynamically by JavaScript -->
+    </div>
+
+    <!-- Empty Search State -->
+    <div id="empty-search-state" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">
+      <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-3">
+        <i class="fa-solid fa-box-open"></i>
+      </div>
+      <h3 class="text-lg font-bold text-slate-800">No encontramos ningún producto</h3>
+      <p class="text-slate-500 text-sm mt-1 max-w-md mx-auto">No hay resultados coincidentes con la palabra ingresada. Intenta buscar con un nombre más corto o genera tu pedido personalizado por WhatsApp.</p>
+      <button onclick="clearSearch()" class="mt-4 inline-flex items-center gap-2 bg-brand-600 text-white font-semibold px-4 py-2 rounded-lg text-sm hover:bg-brand-700 transition-colors">
+        <i class="fa-solid fa-rotate-left"></i> Restablecer filtro
+      </button>
+    </div>
+
+  </main>
+
+  <!-- ==================== ABOUT & FOOTER ==================== -->
+  <section id="nosotros" class="bg-slate-900 text-white py-12 border-t border-slate-800 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-3 gap-8">
+      <div>
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded-lg bg-brand-600 text-white flex items-center justify-center text-xl font-bold">🛒</div>
+          <h3 class="text-xl font-extrabold text-white">Inversiones Caracho</h3>
+        </div>
+        <p class="text-slate-400 text-sm leading-relaxed">
+          Ofrecemos la más amplia variedad en abarrotería general, productos frescos, embutidos y artículos del hogar al mejor precio de la zona.
+        </p>
+      </div>
+
+      <div>
+        <h4 class="text-white font-bold text-base mb-3 border-b border-slate-800 pb-2">Atención Directa</h4>
+        <ul class="space-y-2 text-sm text-slate-300">
+          <li class="flex items-center gap-2.5">
+            <i class="fa-brands fa-whatsapp text-emerald-400 text-base"></i>
+            <a href="https://wa.me/50431866732" target="_blank" class="hover:text-emerald-400 transition-colors">+504 3186-6732</a>
+          </li>
+          <li class="flex items-center gap-2.5">
+            <i class="fa-solid fa-clock text-amber-400 text-base"></i>
+            <span>Lunes a Domingo: 7:00 AM - 7:00 PM</span>
+          </li>
+          <li class="flex items-center gap-2.5">
+            <i class="fa-solid fa-shield-halved text-brand-400 text-base"></i>
+            <span>Garantía de frescura y buenos precios</span>
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-white font-bold text-base mb-3 border-b border-slate-800 pb-2">Instrucciones de Compra</h4>
+        <ol class="space-y-1.5 text-xs text-slate-400 list-decimal list-inside">
+          <li>Busca y agrega productos al carrito.</li>
+          <li>Ajusta la cantidad de cada uno.</li>
+          <li>Revisa tu total acumulado en Lempiras (L).</li>
+          <li>Presiona <strong class="text-emerald-400">"Finalizar por WhatsApp"</strong> para enviarnos tu pedido completo.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <footer class="bg-slate-950 text-slate-400 py-6 border-t border-slate-900 text-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+      <div>
+        <p class="font-semibold text-slate-300">Inversiones Caracho</p>
+        <p class="text-slate-500 italic">"Economía y ahorro para su hogar"</p>
+      </div>
+      <p>&copy; 2026 Inversiones Caracho. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <!-- ==================== SHOPPING CART SLIDE-OVER DRAWER ==================== -->
+  <div id="cart-backdrop" onclick="toggleCart(false)" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 transition-opacity"></div>
+  
+  <aside id="cart-drawer" class="cart-drawer fixed top-0 right-0 bottom-0 w-full sm:w-[450px] bg-white z-50 shadow-2xl flex flex-col translate-x-full">
+    
+    <!-- Cart Header -->
+    <div class="bg-slate-900 text-white p-5 flex items-center justify-between border-b border-slate-800">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center text-lg">
+          <i class="fa-solid fa-basket-shopping"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-lg leading-tight text-white">Tu Lista de Compras</h3>
+          <p class="text-xs text-slate-400"><span id="drawer-items-count">0</span> artículos en el carrito</p>
+        </div>
+      </div>
+      <button 
+        onclick="toggleCart(false)" 
+        aria-label="Cerrar Carrito"
+        class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors"
+      >
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <!-- Cart Body Items List -->
+    <div id="cart-items-container" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
+      <!-- Empty Cart State -->
+      <div id="empty-cart-state" class="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400">
+        <div class="w-20 h-20 bg-slate-200/70 text-slate-400 rounded-full flex items-center justify-center text-3xl mb-3">
+          <i class="fa-solid fa-cart-flatbed-suitcases"></i>
+        </div>
+        <h4 class="text-base font-bold text-slate-700">Tu carrito está vacío</h4>
+        <p class="text-xs text-slate-500 mt-1 max-w-xs">Navega por las categorías y presiona "Agregar" para ir armando tu lista de compras.</p>
+      </div>
+    </div>
+
+    <!-- Cart Footer with Totals and WhatsApp Order Trigger -->
+    <div class="p-5 bg-white border-t border-slate-200 shadow-lg space-y-3">
+      
+      <!-- Clear Cart Option -->
+      <div id="cart-actions-bar" class="hidden justify-between items-center text-xs pb-2 border-b border-slate-100">
+        <span class="text-slate-500">Resumen de Cuenta</span>
+        <button onclick="clearCart()" class="text-red-500 hover:text-red-700 font-semibold flex items-center gap-1">
+          <i class="fa-solid fa-trash-can"></i> Vaciar Carrito
+        </button>
+      </div>
+
+      <!-- Price Totals Breakdown -->
+      <div class="space-y-1.5">
+        <div class="flex justify-between text-slate-600 text-sm">
+          <span>Subtotal estimado</span>
+          <span id="cart-subtotal" class="font-semibold">L 0.00</span>
+        </div>
+        <div class="flex justify-between text-slate-900 text-lg font-extrabold pt-1 border-t border-slate-100">
+          <span>Total a Pagar</span>
+          <span id="cart-total" class="text-brand-600 font-black">L 0.00</span>
+        </div>
+      </div>
+
+      <!-- WhatsApp Order Submit Button -->
+      <button 
+        id="whatsapp-submit-btn"
+        onclick="sendCartToWhatsApp()"
+        disabled
+        class="w-full bg-slate-300 text-slate-500 font-bold py-3.5 px-4 rounded-xl shadow-md flex items-center justify-center gap-2.5 transition-all cursor-not-allowed"
+      >
+        <i class="fa-brands fa-whatsapp text-xl"></i>
+        <span>Enviar Pedido por WhatsApp</span>
+      </button>
+
+      <p class="text-[11px] text-center text-slate-400">
+        Se abrirá WhatsApp con el desglose detallado de tus productos.
+      </p>
+    </div>
+
+  </aside>
+
+  <!-- ==================== FLOATING QUICK CART BUTTON ==================== -->
+  <div class="fixed bottom-6 right-6 z-30 flex flex-col items-end gap-3">
+    
+    <!-- Floating Direct Call -->
+    <a href="https://wa.me/50431866732" target="_blank" aria-label="WhatsApp Directo" class="w-12 h-12 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/30 transition-transform hover:scale-110">
+      <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- Floating Cart Button -->
+    <button 
+      onclick="toggleCart(true)"
+      aria-label="Ver Carrito Flotante"
+      class="bg-slate-900 hover:bg-slate-800 text-white p-3.5 rounded-full shadow-2xl flex items-center gap-3 border-2 border-brand-500 group transition-transform active:scale-95"
+    >
+      <div class="relative">
+        <i class="fa-solid fa-basket-shopping text-xl text-brand-400 group-hover:scale-110 transition-transform"></i>
+        <span id="floating-cart-badge" class="absolute -top-3 -right-3 bg-amber-400 text-slate-950 font-black text-[11px] w-5 h-5 rounded-full flex items-center justify-center border border-slate-900">
+          0
+        </span>
+      </div>
+      <span id="floating-cart-total" class="font-extrabold text-sm text-emerald-400 pr-1">L 0.00</span>
+    </button>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 pointer-events-none flex flex-col items-center gap-2"></div>
+
+
+  <!-- ==================== JAVASCRIPT APP LOGIC ==================== -->
+  <script>
+    /* Raw Data Structure for Inversiones Caracho Catalog */
+    const catalogData = [
+      {
+        category: "ACEITE Y MANTECAS",
+        icon: "🛢️",
+        products: [
+          { id: 1, name: "ACEITE CLOVER BOTE 2750ML", price: 245.00 },
+          { id: 2, name: "ACEITE CLOVER BRAND BT 925ML", price: 85.00 },
+          { id: 3, name: "ACEITE DE COCINA PESADO", price: 28.00 },
+          { id: 4, name: "ACEITE DE OLIVA EXTRA VIRGEN 125ML", price: 125.00 },
+          { id: 5, name: "ACEITE DE OLIVA EXTRA VIRGEN 250ML", price: 180.00 },
+          { id: 6, name: "ACEITE MAZOLA 400ML", price: 40.00 },
+          { id: 7, name: "ACEITE ORISOL 700ML", price: 75.00 },
+          { id: 8, name: "ACEITE ORISOL CLÁSICO 400ML", price: 40.00 },
+          { id: 9, name: "ACEITE ORISOL CON OLIVA 410ML", price: 45.00 },
+          { id: 10, name: "ACEITE VEGETAL CLOVER 410ML", price: 40.00 },
+          { id: 11, name: "MARGARINA ORISOL BARRA", price: 35.00 }
+        ]
+      },
+      {
+        category: "AGUA EMBOTELLADA",
+        icon: "💧",
+        products: [
+          { id: 12, name: "AGUA ZEN 800ML", price: 20.00 },
+          { id: 13, name: "AGUAZUL 1.1L", price: 25.00 },
+          { id: 14, name: "AGUAZUL 1.5L", price: 30.00 },
+          { id: 15, name: "AGUAZUL 12ONZ", price: 10.00 },
+          { id: 16, name: "AGUAZUL 750ML", price: 20.00 },
+          { id: 17, name: "AGUAZUL LIFE 500ML", price: 15.00 },
+          { id: 18, name: "AGUAZUL LIFE 750ML", price: 20.00 },
+          { id: 19, name: "AGUAZUL LIFE SPORT 750ML", price: 20.00 }
+        ]
+      },
+      {
+        category: "BEBIDAS Y REFRESCOS",
+        icon: "🥤",
+        products: [
+          { id: 20, name: "ALOE VERA FRESA OKF 500ML", price: 35.00 },
+          { id: 21, name: "ALOE VERA PIÑA OKF 500ML", price: 35.00 },
+          { id: 22, name: "ALOE VERA LATA 450ML", price: 30.00 },
+          { id: 23, name: "AMP ENERGIZANTE 355ML", price: 25.00 },
+          { id: 24, name: "BEBIDA ADRENALINA 500ML", price: 25.00 },
+          { id: 25, name: "COCA COLA 1.25L", price: 32.00 },
+          { id: 26, name: "COCA COLA 3L NON-RETURNABLE", price: 65.00 },
+          { id: 27, name: "COCA COLA LATA 355ML", price: 22.00 },
+          { id: 28, name: "JUGO SULA DE NARANJA 1L", price: 38.00 },
+          { id: 29, name: "GATORADE FRUTAS 600ML", price: 28.00 },
+          { id: 30, name: "PEPSI 1.25L", price: 28.00 },
+          { id: 31, name: "TE FRIO LIMPTON 500ML", price: 22.00 }
+        ]
+      },
+      {
+        category: "GRANOS BÁSICOS Y HARINAS",
+        icon: "🌾",
+        products: [
+          { id: 32, name: "ARROZ BLANCO PROGRESO LIBRA", price: 16.00 },
+          { id: 33, name: "ARROZ PRECOCIDO LIBRA", price: 18.00 },
+          { id: 34, name: "FRIJOL ROJO SEDA LIBRA", price: 25.00 },
+          { id: 35, name: "HARINA DE TRIGO GOLD MEDAL 1KG", price: 28.00 },
+          { id: 36, name: "HARINA MASECA 1KG", price: 26.00 },
+          { id: 37, name: "AZÚCAR BLANCA DULCESA LIBRA", price: 13.00 }
+        ]
+      },
+      {
+        category: "LÁCTEOS Y HUEVOS",
+        icon: "🥛",
+        products: [
+          { id: 38, name: "LECHE SULA ENTERA 1L", price: 30.00 },
+          { id: 39, name: "LECHE SULA DESCREMADA 1L", price: 32.00 },
+          { id: 40, name: "QUESO FRESCO OLANCHANO LIBRA", price: 65.00 },
+          { id: 41, name: "QUESO SECO RALLADO LIBRA", price: 70.00 },
+          { id: 42, name: "MANTEQUILLA CREMA SULA 200G", price: 22.00 },
+          { id: 43, name: "CARTÓN DE HUEVOS FRESCOS (30 UNID)", price: 105.00 },
+          { id: 44, name: "MEDIO CARTÓN DE HUEVOS (15 UNID)", price: 55.00 }
+        ]
+      },
+      {
+        category: "CARNES Y EMBUTIDOS",
+        icon: "🥩",
+        products: [
+          { id: 45, name: "CARNE DE CERDO PROGCARNE LIBRA", price: 85.00 },
+          { id: 46, name: "CARNE DE RES TOP BEEF LIBRA", price: 110.00 },
+          { id: 47, name: "CHORIZO OLANCHANO LIBRA", price: 65.00 },
+          { id: 48, name: "MORTADELA DELICIA LIBRA", price: 42.00 },
+          { id: 49, name: "SALCHICHA JAMONADA LIBRA", price: 38.00 },
+          { id: 50, name: "POLLO ENTERO FRESCO LIBRA", price: 32.00 }
+        ]
+      },
+      {
+        category: "ASEO Y LIMPIEZA DEL HOGAR",
+        icon: "🧼",
+        products: [
+          { id: 51, name: "CEPILLO DENTAL COLGATE", price: 20.00 },
+          { id: 52, name: "CLORO MAGIA BLANCA 3785ML (GALÓN)", price: 85.00 },
+          { id: 53, name: "CLORO MAGIA BLANCA LIMÓN 1L", price: 30.00 },
+          { id: 54, name: "DETERGENTE XEDEX EN POLVO 500G", price: 35.00 },
+          { id: 55, name: "FABULOSO DESINFECTANTE 1L", price: 42.00 },
+          { id: 56, name: "JABÓN AXION AXION LÍQUIDO 750ML", price: 48.00 },
+          { id: 57, name: "JABÓN DE BAÑO PALMOLIVE", price: 18.00 },
+          { id: 58, name: "PAPEL HIGIÉNICO ROSAL 4 ROLLOS", price: 36.00 }
+        ]
+      },
+      {
+        category: "SNACKS Y GALLETAS",
+        icon: "🍪",
+        products: [
+          { id: 59, name: "GALLETAS CHIKY CHOCOLATE 6PK", price: 32.00 },
+          { id: 60, name: "GALLETAS POZUELO CLUB SOCIAL", price: 25.00 },
+          { id: 61, name: "PAPITAS ZAMBOS CHARRAS", price: 18.00 },
+          { id: 62, name: "SNACK YUMMIES CHICHARRÓN", price: 15.00 },
+          { id: 63, name: "NUTS MANÍ CON SAL YUMMIES", price: 12.00 }
+        ]
+      }
+    ];
+
+    // State object for Cart Management
+    let cart = [];
+
+    // Initialize App on DOM Load
+    document.addEventListener("DOMContentLoaded", () => {
+      loadCartFromStorage();
+      renderCatalog(catalogData);
+      updateCartUI();
+    });
+
+    /* Render Catalog Accordions and Product Grids */
+    function renderCatalog(data) {
+      const container = document.getElementById("categories-container");
+      container.innerHTML = "";
+
+      let totalProductsCount = 0;
+
+      data.forEach((cat, index) => {
+        totalProductsCount += cat.products.length;
+        const isFirst = index === 0;
+
+        const detailsEl = document.createElement("details");
+        detailsEl.className = "category-block group bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden transition-all duration-200";
+        if (isFirst) detailsEl.open = true;
+
+        const summaryHTML = `
+          <summary class="flex items-center justify-between p-4 sm:p-5 bg-slate-50 hover:bg-slate-100/80 cursor-pointer select-none transition-colors border-b border-transparent group-open:border-slate-200">
+            <div class="flex items-center gap-3.5">
+              <span class="text-2xl p-2 bg-white rounded-xl shadow-sm border border-slate-200/60">${cat.icon}</span>
+              <div>
+                <h3 class="font-bold text-slate-900 text-base sm:text-lg group-hover:text-brand-600 transition-colors">${cat.category}</h3>
+                <p class="text-xs text-slate-500 font-medium">${cat.products.length} productos disponibles</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs bg-slate-200 group-open:bg-brand-100 group-open:text-brand-800 text-slate-700 font-semibold px-2.5 py-1 rounded-full">
+                ${cat.products.length}
+              </span>
+              <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 transition-transform duration-200"></i>
+            </div>
+          </summary>
+        `;
+
+        let productsGridHTML = `<div class="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 bg-white">`;
+
+        cat.products.forEach(product => {
+          const cartItem = cart.find(i => i.id === product.id);
+          const currentQty = cartItem ? cartItem.qty : 0;
+
+          productsGridHTML += `
+            <div class="product-card p-3.5 rounded-xl border border-slate-200/80 hover:border-brand-500/50 hover:shadow-md transition-all flex flex-col justify-between bg-white group/item" data-name="${product.name.toLowerCase()}">
+              <div>
+                <div class="flex justify-between items-start gap-2">
+                  <h4 class="font-bold text-slate-800 text-sm group-hover/item:text-brand-600 transition-colors leading-snug">${product.name}</h4>
+                  <span class="bg-emerald-50 text-emerald-700 text-xs font-extrabold px-2 py-0.5 rounded border border-emerald-200/60 shrink-0">
+                    L ${product.price.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              <div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                <span class="text-[11px] text-slate-400 font-medium">Unidad</span>
+                
+                <div id="btn-container-${product.id}">
+                  ${renderProductButtonHTML(product.id, currentQty)}
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        productsGridHTML += `</div>`;
+
+        detailsEl.innerHTML = summaryHTML + productsGridHTML;
+        container.appendChild(detailsEl);
+      });
+
+      // Toggle Empty State Visibility
+      document.getElementById("empty-search-state").classList.add("hidden");
+    }
+
+    /* Helper function to switch between "Agregar" button and "+ / - Qty Selector" */
+    function renderProductButtonHTML(id, qty) {
+      if (qty > 0) {
+        return `
+          <div class="inline-flex items-center bg-brand-50 border border-brand-200 rounded-lg p-0.5">
+            <button onclick="updateQuantity(${id}, ${qty - 1})" class="w-7 h-7 bg-white hover:bg-brand-600 hover:text-white text-slate-700 rounded font-bold text-xs shadow-sm flex items-center justify-center transition-colors">
+              <i class="fa-solid fa-minus"></i>
+            </button>
+            <span class="w-8 text-center text-xs font-black text-brand-900">${qty}</span>
+            <button onclick="updateQuantity(${id}, ${qty + 1})" class="w-7 h-7 bg-brand-600 hover:bg-brand-700 text-white rounded font-bold text-xs shadow-sm flex items-center justify-center transition-colors">
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          </div>
+        `;
+      } else {
+        return `
+          <button 
+            onclick="addToCart(${id})" 
+            class="bg-slate-100 hover:bg-brand-600 text-slate-700 hover:text-white font-bold text-xs px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+          >
+            <i class="fa-solid fa-cart-plus text-brand-600 group-hover/item:text-white"></i>
+            <span>Agregar</span>
+          </button>
+        `;
+      }
+    }
+
+    /* Global Search / Filter Handler */
+    function handleSearch(query) {
+      const q = query.trim().toLowerCase();
+      
+      // Sync all 3 search inputs
+      document.getElementById("nav-search-input").value = query;
+      document.getElementById("mobile-search-input").value = query;
+      document.getElementById("main-search-input").value = query;
+
+      const clearBtn = document.getElementById("clear-search-btn");
+      const infoBox = document.getElementById("search-results-info");
+      
+      if (q.length > 0) {
+        clearBtn.classList.remove("hidden");
+        infoBox.classList.remove("hidden");
+      } else {
+        clearBtn.classList.add("hidden");
+        infoBox.classList.add("hidden");
+      }
+
+      const allDetails = document.querySelectorAll(".category-block");
+      let totalMatchCount = 0;
+
+      allDetails.forEach(details => {
+        const productCards = details.querySelectorAll(".product-card");
+        let matchesInCategory = 0;
+
+        productCards.forEach(card => {
+          const pName = card.getAttribute("data-name");
+          if (pName.includes(q)) {
+            card.classList.remove("hidden");
+            matchesInCategory++;
+            totalMatchCount++;
+          } else {
+            card.classList.add("hidden");
+          }
+        });
+
+        // Hide or show whole category accordion block
+        if (matchesInCategory > 0) {
+          details.classList.remove("hidden");
+          details.open = true; // Auto-expand matching categories
+        } else {
+          details.classList.add("hidden");
+        }
+      });
+
+      document.getElementById("search-results-count").textContent = totalMatchCount;
+
+      const emptyState = document.getElementById("empty-search-state");
+      if (totalMatchCount === 0 && q.length > 0) {
+        emptyState.classList.remove("hidden");
+      } else {
+        emptyState.classList.add("hidden");
+      }
+    }
+
+    function clearSearch() {
+      handleSearch("");
+    }
+
+    function expandAllCategories(shouldOpen) {
+      document.querySelectorAll(".category-block").forEach(d => d.open = shouldOpen);
+    }
+
+    /* ================= CART CORE FUNCTIONS ================= */
+
+    function findProductById(id) {
+      for (const cat of catalogData) {
+        const found = cat.products.find(p => p.id === id);
+        if (found) return found;
+      }
+      return null;
+    }
+
+    function addToCart(productId) {
+      const product = findProductById(productId);
+      if (!product) return;
+
+      const existing = cart.find(item => item.id === productId);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ ...product, qty: 1 });
+      }
+
+      saveCartToStorage();
+      updateCartUI();
+      refreshProductButton(productId);
+      showToast(`Agregado: ${product.name}`);
+    }
+
+    function updateQuantity(productId, newQty) {
+      if (newQty <= 0) {
+        cart = cart.filter(item => item.id !== productId);
+      } else {
+        const item = cart.find(i => i.id === productId);
+        if (item) item.qty = newQty;
+      }
+
+      saveCartToStorage();
+      updateCartUI();
+      refreshProductButton(productId);
+    }
+
+    function refreshProductButton(productId) {
+      const btnContainer = document.getElementById(`btn-container-${productId}`);
+      if (btnContainer) {
+        const item = cart.find(i => i.id === productId);
+        const qty = item ? item.qty : 0;
+        btnContainer.innerHTML = renderProductButtonHTML(productId, qty);
+      }
+    }
+
+    function clearCart() {
+      if (cart.length === 0) return;
+      cart = [];
+      saveCartToStorage();
+      updateCartUI();
+      
+      // Refresh all product card buttons in view
+      catalogData.forEach(cat => {
+        cat.products.forEach(p => refreshProductButton(p.id));
+      });
+
+      showToast("Se ha vaciado el carrito");
+    }
+
+    function updateCartUI() {
+      const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+      const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+      // Update badge counts
+      document.getElementById("cart-badge-count").textContent = totalItems;
+      document.getElementById("hero-items-count").textContent = totalItems;
+      document.getElementById("floating-cart-badge").textContent = totalItems;
+      document.getElementById("drawer-items-count").textContent = totalItems;
+
+      // Update totals
+      const formattedTotal = `L ${totalPrice.toFixed(2)}`;
+      document.getElementById("cart-subtotal").textContent = formattedTotal;
+      document.getElementById("cart-total").textContent = formattedTotal;
+      document.getElementById("floating-cart-total").textContent = formattedTotal;
+
+      // Enable / Disable WhatsApp Button
+      const waBtn = document.getElementById("whatsapp-submit-btn");
+      const cartActionsBar = document.getElementById("cart-actions-bar");
+
+      if (totalItems > 0) {
+        waBtn.disabled = false;
+        waBtn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2.5 transition-all cursor-pointer active:scale-95";
+        cartActionsBar.classList.remove("hidden");
+        cartActionsBar.classList.add("flex");
+      } else {
+        waBtn.disabled = true;
+        waBtn.className = "w-full bg-slate-200 text-slate-400 font-bold py-3.5 px-4 rounded-xl shadow-none flex items-center justify-center gap-2.5 transition-all cursor-not-allowed";
+        cartActionsBar.classList.add("hidden");
+        cartActionsBar.classList.remove("flex");
+      }
+
+      // Render Drawer Item List
+      renderDrawerItems();
+    }
+
+    function renderDrawerItems() {
+      const container = document.getElementById("cart-items-container");
+      
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div id="empty-cart-state" class="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400">
+            <div class="w-20 h-20 bg-slate-200/70 text-slate-400 rounded-full flex items-center justify-center text-3xl mb-3">
+              <i class="fa-solid fa-cart-flatbed-suitcases"></i>
+            </div>
+            <h4 class="text-base font-bold text-slate-700">Tu carrito está vacío</h4>
+            <p class="text-xs text-slate-500 mt-1 max-w-xs">Navega por las categorías y presiona "Agregar" para ir armando tu lista de compras.</p>
+          </div>
+        `;
+        return;
+      }
+
+      let itemsHTML = "";
+      cart.forEach(item => {
+        const itemSubtotal = item.price * item.qty;
+        itemsHTML += `
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between gap-3">
+            <div class="flex-1 min-w-0">
+              <h5 class="text-xs font-bold text-slate-900 truncate">${item.name}</h5>
+              <div class="text-[11px] text-slate-500 mt-0.5">
+                L ${item.price.toFixed(2)} x ${item.qty} = <span class="font-bold text-slate-800">L ${itemSubtotal.toFixed(2)}</span>
+              </div>
+            </div>
+
+            <!-- Quantity Control inside drawer -->
+            <div class="flex items-center gap-1 bg-slate-100 rounded-lg p-1 border border-slate-200/80 shrink-0">
+              <button onclick="updateQuantity(${item.id}, ${item.qty - 1})" class="w-6 h-6 bg-white hover:bg-red-500 hover:text-white text-slate-700 rounded font-bold text-xs shadow-sm flex items-center justify-center transition-colors">
+                <i class="fa-solid fa-minus text-[10px]"></i>
+              </button>
+              <span class="w-6 text-center text-xs font-bold text-slate-900">${item.qty}</span>
+              <button onclick="updateQuantity(${item.id}, ${item.qty + 1})" class="w-6 h-6 bg-brand-600 hover:bg-brand-700 text-white rounded font-bold text-xs shadow-sm flex items-center justify-center transition-colors">
+                <i class="fa-solid fa-plus text-[10px]"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = itemsHTML;
+    }
+
+    /* Open/Close Drawer Toggle */
+    function toggleCart(open) {
+      const drawer = document.getElementById("cart-drawer");
+      const backdrop = document.getElementById("cart-backdrop");
+
+      if (open) {
+        backdrop.classList.remove("hidden");
+        drawer.classList.remove("translate-x-full");
+        document.body.style.overflow = "hidden"; // Prevent scrolling behind
+      } else {
+        backdrop.classList.add("hidden");
+        drawer.classList.add("translate-x-full");
+        document.body.style.overflow = "";
+      }
+    }
+
+    /* Local Storage Operations */
+    function saveCartToStorage() {
+      localStorage.setItem("caracho_cart", JSON.stringify(cart));
+    }
+
+    function loadCartFromStorage() {
+      const saved = localStorage.getItem("caracho_cart");
+      if (saved) {
+        try {
+          cart = JSON.parse(saved);
+        } catch(e) {
+          cart = [];
+        }
+      }
+    }
+
+    /* ================= WHATSAPP ORDER GENERATOR ================= */
+    function sendCartToWhatsApp() {
+      if (cart.length === 0) return;
+
+      const phoneNumber = "50431866732";
+      let message = "🛒 *NUEVO PEDIDO - INVERSIONES CARACHO*\n";
+      message += "------------------------------------------\n";
+      message += "Hola, deseo realizar el siguiente pedido:\n\n";
+
+      let totalAcc = 0;
+
+      cart.forEach((item, idx) => {
+        const itemTotal = item.price * item.qty;
+        totalAcc += itemTotal;
+        message += `${idx + 1}. *${item.name}*\n`;
+        message += `   Cantidad: ${item.qty} u. | L ${item.price.toFixed(2)} c/u = *L ${itemTotal.toFixed(2)}*\n\n`;
+      });
+
+      message += "------------------------------------------\n";
+      message += `💰 *TOTAL DE LA COMPRA: L ${totalAcc.toFixed(2)}*\n`;
+      message += "------------------------------------------\n\n";
+      message += "Quedo a la espera de sus indicaciones para confirmar la entrega. ¡Muchas gracias!";
+
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+      window.open(whatsappURL, "_blank");
+    }
+
+    /* Floating Toast Notification Alert */
+    function showToast(text) {
+      const container = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+      toast.className = "toast-animate bg-slate-900/90 backdrop-blur-md text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-xl border border-brand-500/40 flex items-center gap-2";
+      toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span>${text}</span>`;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transition = "opacity 0.3s ease";
+        setTimeout(() => toast.remove(), 300);
+      }, 2000);
+    }
+  </script>
 </body>
 </html>
